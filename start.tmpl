@@ -1,0 +1,200 @@
+{{define "t_start"}}
+<html>
+<head>
+
+<!-- DataTables -->
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.9/css/jquery.dataTables.css">
+<link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.9/css/dataTables.bootstrap.min.css">
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<!-- 
+<script type="text/javascript" charset="utf8" src="//code.jquery.com/jquery-1.10.2.min.js"></script> 
+-->
+<!-- DataTables -->
+<script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.9/js/jquery.dataTables.js"></script>
+<!-- DataTables -->
+
+<!-- BootStrap -->
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<!-- BootStrap -->
+
+
+<!-- plus //-->
+<link rel="stylesheet" href="//cdn.jsdelivr.net/fontawesome/4.2.0/css/font-awesome.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/formvalidation/0.6.1/js/formValidation.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/formvalidation/0.6.1/js/framework/bootstrap.min.js"></script>
+<script>
+$(document).ready(function() {
+    var max_fields      = 20; //maximum input boxes allowed
+    var wrapper         = $(".input_fields_wrap"); //Fields wrapper
+    var add_button      = $(".add_field_button"); //Add button ID
+
+    var MAX_OPTIONS = 5;
+    $("#distanceForm")
+        .on('click', '.addButton', function() {
+            var $template = $('#urlsTemplate'),
+                $clone    = $template
+                                .clone()
+                                .removeClass('hide')
+                                .removeAttr('id')
+                                .insertBefore($template),
+                $urls   = $clone.find('[name="urls[]"]');
+
+        })
+            // Remove button click handler
+        .on('click', '.removeButton', function() {
+            var $row    = $(this).parents('.form-group'),
+                $urls = $row.find('[name="urls[]"]');
+
+            // Remove element containing the urls
+            $row.remove();
+        })
+        // Called after adding new field
+        .on('added.field.fv', function(e, data) {
+            // data.field   --> The field name
+            // data.element --> The new field element
+            // data.urlss --> The new field urlss
+
+            if (data.field === 'urls[]') {
+                if ($('#distanceForm').find(':visible[name="urls[]"]').length >= MAX_OPTIONS) {
+                    $('#distanceForm').find('.addButton').attr('disabled', 'disabled');
+                }
+            }
+        })
+
+        // Called after removing the field
+        .on('removed.field.fv', function(e, data) {
+           if (data.field === 'urls[]') {
+                if ($('#distanceForm').find(':visible[name="urls[]"]').length < MAX_OPTIONS) {
+                    $('#distanceForm').find('.addButton').removeAttr('disabled');
+                }
+            }
+        })
+        .submit(function() {
+            var url = "/distance"; // the script where you handle the form input.
+
+            $.ajax({
+                  type: "POST",
+                  url: url,
+                  data: $("#distanceForm").serialize(), // serializes the form's elements.
+                  success: function(data)
+                  {
+                      var $template = $('#distanceTemplate');
+                      var $clone = $template
+                                        .clone()
+                                        .removeClass('hide')
+                                        .removeAttr('id')
+                                        .insertAfter($template);
+                      var tr;
+                      var obj=JSON.parse(data);
+                      for(var i=0;i<obj.length;i++)
+                      {
+
+                        tr = $('<tr/>');
+                        tr.append("<td>" + obj[i]["JaccardDistance"]+"</td>");
+                        tr.append("<td>" + obj[i]["SiteA"]+"</td>");
+                        tr.append("<td>" + obj[i]["SiteB"]+"</td></tr>");
+                        $clone.find('tbody').append(tr);
+                      }
+                      $clone.find('table').DataTable();
+                  }
+                });
+
+            return false; // avoid to execute the actual submit of the form.
+        });
+  });
+</script>
+</head>
+<body>
+
+<div class="col-sm-6">
+  <h1>Jaccard Comparison</h1>
+  <form id="distanceForm" action="/distance" method="post" class="form-horizontal">
+
+    <div class="input_fields_wrap">
+
+      <div class="form-group">
+          <div class="col-xs-5">
+              <input type="text" class="form-control" name="urls[]" />
+          </div>
+          <div class="col-xs-4">
+              <button type="button" class="btn btn-default addButton">
+                <i class="fa fa-plus"></i>
+              </button>
+          </div>
+      </div>
+
+      <div class="form-group">
+          <div class="col-xs-5">
+              <input type="text" class="form-control" name="urls[]" />
+          </div>
+          <div class="col-xs-4">
+              <button type="button" class="btn btn-default removeButton">
+                <i class="fa fa-minus"></i>
+              </button>
+          </div>
+      </div>
+
+      <div class="form-group">
+          <div class="col-xs-5">
+              <input type="text" class="form-control" name="urls[]" />
+          </div>
+          <div class="col-xs-4">
+              <button type="button" class="btn btn-default removeButton">
+                <i class="fa fa-minus"></i>
+              </button>
+          </div>
+      </div>
+
+      <div class="form-group">
+          <div class="col-xs-5">
+              <input type="text" class="form-control" name="urls[]" />
+          </div>
+          <div class="col-xs-4">
+              <button type="button" class="btn btn-default removeButton">
+                <i class="fa fa-minus"></i>
+              </button>
+          </div>
+      </div>
+
+      <!-- The urls field template containing an urls field and a Remove button -->
+      <div class="form-group hide" id="urlsTemplate">
+          <div class="col-xs-5">
+              <input class="form-control" type="text" name="urls[]" />
+          </div>
+          <div class="col-xs-4">
+              <button type="button" class="btn btn-default removeButton">
+                <i class="fa fa-minus"></i>
+              </button>
+          </div>
+      </div>
+    </div>
+    <div>
+      <div class="col-sm-4">
+        <input class="btn btn-default" type="submit" value="compare">
+      </div>
+    </div>
+  </form>
+</div>
+<div class="hide" id="distanceTemplate">
+<table  class="table table-striped table-bordered">
+  <thead>
+    <tr>
+        <th>Distance</th>
+        <th>SiteA</th>
+        <th>SiteB</th>
+    </tr>
+  </thead>
+  <tbody/>
+</table>
+</div>
+
+</body>
+</html>
+{{end}}
